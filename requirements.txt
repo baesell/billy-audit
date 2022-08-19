@@ -1,2 +1,2 @@
 # requirements.txt
-supabase==x.x.x
+supabase==0.5.8
