@@ -1,5 +1,6 @@
 # requirements.txt
 dateparser==1.1.1
 pdfplumber==0.7.1
+plotly-express==0.4.1
 supabase==0.5.8
 streamlit-aggrid==0.2.3.post2
