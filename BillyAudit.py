@@ -15,7 +15,7 @@ import plotly.express as px
 from supabase import create_client, Client
 
 
-# In[498]:
+# In[523]:
 
 
 # add streamlit webapp title
@@ -24,7 +24,7 @@ st.set_page_config(layout="wide")
 
 st.title('BillyAudit')
 
-st.header('Automated freight invoice checks')
+st.subheader('Your Automated Freight Bill Audit Solution')
 
 
 # In[499]:
@@ -52,7 +52,9 @@ for i in range(0, len(rate_data)):
 
 # add streamlit header
 
-st.header('1. Enter Contract Rates')
+st.header('')
+
+st.subheader('1. Enter Contract Rates')
 
 
 # In[501]:
@@ -206,7 +208,7 @@ if st.button('Save Changes'):
 
 st.header('')
 
-st.header('2. Upload PDF Invoices')
+st.subheader('2. Upload PDF Invoices')
 
 uploaded_files = st.file_uploader("Choose a PDF file", type=['pdf'], accept_multiple_files=True)
 
@@ -220,7 +222,7 @@ uploaded_files = st.file_uploader("Choose a PDF file", type=['pdf'], accept_mult
 
 st.header('')
 
-st.header('3. Download Audit Results')
+st.subheader('3. Download Audit Results')
 
 
 # In[504]:
@@ -403,12 +405,6 @@ invoice_data['volume'] = pd.to_numeric(invoice_data['volume'], downcast='float')
 invoice_data['invoice_amount'] = pd.to_numeric(invoice_data['invoice_amount'], downcast='float')
 
 invoice_data = invoice_data.drop(columns=['content'])
-
-
-# In[521]:
-
-
-rate_data.info()
 
 
 # In[516]:
