@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[379]:
+# In[408]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ import plotly.express as px
 from supabase import create_client, Client
 
 
-# In[380]:
+# In[409]:
 
 
 # add streamlit webapp title
@@ -27,7 +27,7 @@ st.title('BillyAudit')
 st.header('Automated freight invoice checks')
 
 
-# In[381]:
+# In[410]:
 
 
 @st.experimental_singleton()
@@ -47,7 +47,7 @@ for i in range(0, len(rate_data)):
 
 # # Enter Contract Rates
 
-# In[382]:
+# In[411]:
 
 
 # add streamlit header
@@ -55,7 +55,7 @@ for i in range(0, len(rate_data)):
 st.header('1. Enter Contract Rates')
 
 
-# In[383]:
+# In[412]:
 
 
 from st_aggrid.shared import GridUpdateMode, DataReturnMode
@@ -69,7 +69,7 @@ aggrid = GridOptionsBuilder.from_dataframe(rate_data)
 aggrid.configure_column("service_provider", header_name='Service Provider', editable=True, suppressMovable=True)
 aggrid.configure_column("origin_code", header_name='Origin Code', editable=True, suppressMovable=True)
 aggrid.configure_column("destination_code", header_name='Destination Code', editable=True, suppressMovable=True)
-aggrid.configure_column("freight_service", header_name='Freight Service', editable=True, suppressMovable=True, cellEditor='agSelectCellEditor', cellEditorParams={'values': ['Air-Economy', 'Air-Premium', 'Air-Priority', 'Sea-FCL-20GP', 'Sea-FCL-20OT', 'Sea-FCL-20RF', 'Sea-FCL-20TK', 'Sea-FCL-40GP', 'Sea-FCL-40HC', 'Sea-FCL-40OT', 'Sea-FCL-40RF', 'Sea-FCL-45HC', 'Sea-LCL']})
+aggrid.configure_column("freight_service", header_name='Freight Service', editable=True, suppressMovable=True, cellEditor='agSelectCellEditor', cellEditorParams={'values': ['Air', 'Sea_fcl_20GP', 'Sea_fcl_20OT', 'Sea_fcl_20RF', 'Sea_fcl_20TK', 'Sea_fcl_40GP', 'Sea_fcl_40HC', 'Sea_fcl_40OT', 'Sea_fcl_40RF', 'Sea_fcl_45HC', 'Sea-LCL']})
 aggrid.configure_column("origin_collection_fees", header_name='Origin Collection Fees', editable=True, suppressMovable=True, type=["numericColumn"])
 aggrid.configure_column("origin_minimum_collection_fee", header_name='Origin Min Collection Fee', editable=True, suppressMovable=True, type=["numericColumn"])
 aggrid.configure_column("origin_handling_fees", header_name='Origin Handling Fee', editable=True, suppressMovable=True, type=["numericColumn"])
@@ -199,7 +199,7 @@ if st.button('Save Changes'):
 
 # # Upload PDF Invoices
 
-# In[384]:
+# In[413]:
 
 
 # add streamlit header
@@ -213,7 +213,7 @@ uploaded_files = st.file_uploader("Choose a PDF file", type=['pdf'], accept_mult
 
 # # Download Audit Results
 
-# In[385]:
+# In[414]:
 
 
 # add streamlit header
@@ -223,7 +223,7 @@ st.header('')
 st.header('3. Download Audit Results')
 
 
-# In[386]:
+# In[415]:
 
 
 # read pdf files and extract content
@@ -240,7 +240,7 @@ for i in uploaded_files:
 invoice_data = pd.DataFrame(invoice_data, columns = ['file_name', 'content'])
 
 
-# In[387]:
+# In[416]:
 
 
 # extract bill of lading number
@@ -252,7 +252,7 @@ invoice_data['ocean_bill_of_lading'] = invoice_data['content'].apply(lambda x: r
 invoice_data['bill_of_lading'] = invoice_data['air_bill_of_lading'] + invoice_data['ocean_bill_of_lading']
 
 
-# In[388]:
+# In[417]:
 
 
 # extract service provider
@@ -262,7 +262,7 @@ service_provider = pd.DataFrame(supabase.table('service_provider').select('*').e
 invoice_data['service_provider'] = invoice_data['content'].apply(lambda x: re.findall(r"(?=(\b" + '\\b|\\b'.join(service_provider['service_provider']) + r"\b))", x)).apply(lambda x: x[0] if len(x)>0 else "")
 
 
-# In[389]:
+# In[418]:
 
 
 # extract origin and destination port codes
@@ -274,35 +274,35 @@ invoice_data['origin_code'] = invoice_data['content'].apply(lambda x: re.findall
 invoice_data['destination_code'] = invoice_data['content'].apply(lambda x: re.findall(r"(?=(\b" + '\\b|\\b'.join(port_codes['port_code']) + r"\b))", x)).apply(lambda x: x[1] if len(x)>1 else "")
 
 
-# In[390]:
+# In[419]:
 
 
 # extract freight service
 
 invoice_data['air'] = invoice_data['content'].apply(lambda x: re.findall(r"\d{3}\-?\d{8}", x)).apply(lambda x: 1 if len(x)>0 else 0)
 
-invoice_data['sea-FCL-20GP'] = invoice_data['content'].apply(lambda x: re.findall(r"20GP\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20GP", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_20gp'] = invoice_data['content'].apply(lambda x: re.findall(r"20GP\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20GP", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-20OT'] = invoice_data['content'].apply(lambda x: re.findall(r"20OT\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20OT", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_20ot'] = invoice_data['content'].apply(lambda x: re.findall(r"20OT\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20OT", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-20RF'] = invoice_data['content'].apply(lambda x: re.findall(r"20RF\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20RF", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_20rf'] = invoice_data['content'].apply(lambda x: re.findall(r"20RF\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20RF", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-20TK'] = invoice_data['content'].apply(lambda x: re.findall(r"20TK\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20TK", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_20tk'] = invoice_data['content'].apply(lambda x: re.findall(r"20TK\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*20TK", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-40GP'] = invoice_data['content'].apply(lambda x: re.findall(r"40GP\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40GP", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_40gp'] = invoice_data['content'].apply(lambda x: re.findall(r"40GP\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40GP", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-40HC'] = invoice_data['content'].apply(lambda x: re.findall(r"40HC\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40HC", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_40hc'] = invoice_data['content'].apply(lambda x: re.findall(r"40HC\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40HC", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-40OT'] = invoice_data['content'].apply(lambda x: re.findall(r"40OT\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40OT", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_40ot'] = invoice_data['content'].apply(lambda x: re.findall(r"40OT\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40OT", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-40RF'] = invoice_data['content'].apply(lambda x: re.findall(r"40RF\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40RF", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_40rf'] = invoice_data['content'].apply(lambda x: re.findall(r"40RF\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*40RF", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-FCL-45HC'] = invoice_data['content'].apply(lambda x: re.findall(r"45HC\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*45HC", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_fcl_45hc'] = invoice_data['content'].apply(lambda x: re.findall(r"45HC\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*45HC", x)).apply(lambda x: len(set(x)))
 
-invoice_data['sea-LCL'] = invoice_data['content'].apply(lambda x: re.findall(r"LCL\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*LCL", x)).apply(lambda x: len(set(x)))
+invoice_data['sea_lcl'] = invoice_data['content'].apply(lambda x: re.findall(r"LCL\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*LCL", x)).apply(lambda x: len(set(x)))
 
 
-# In[391]:
+# In[420]:
 
 
 # extract container id
@@ -310,11 +310,11 @@ invoice_data['sea-LCL'] = invoice_data['content'].apply(lambda x: re.findall(r"L
 invoice_data['container_id'] = ''
 
 for i in range(0, len(invoice_data)):
-    if invoice_data[['sea-FCL-20GP', 'sea-FCL-20OT', 'sea-FCL-20RF', 'sea-FCL-20TK', 'sea-FCL-40GP', 'sea-FCL-40HC', 'sea-FCL-40OT', 'sea-FCL-40RF', 'sea-FCL-45HC', 'sea-LCL']][i] > 0:
+    if invoice_data[['sea_fcl_20gp', 'sea_fcl_20ot', 'sea_fcl_20rf', 'sea_fcl_20tk', 'sea_fcl_40gp', 'sea_fcl_40hc', 'sea_fcl_40ot', 'sea_fcl_40rf', 'sea_fcl_45hc', 'sea_lcl']][i] > 0:
         invoice_data['container_id'] = invoice_data['content'].apply(lambda x: re.findall(r"[A-Z]{4}\d{7}", x)).apply(lambda x: ','.join(map(str, x)))
 
 
-# In[392]:
+# In[421]:
 
 
 # extract number of pallets
@@ -322,7 +322,7 @@ for i in range(0, len(invoice_data)):
 invoice_data['pallets'] = invoice_data['content'].apply(lambda x: re.findall(r"(\d*[.,]*\d*[.,]*\d+[.,]*\d*)\s(?=PLT)", x)).apply(lambda x: min(x) if len(x)>0 else "")
 
 
-# In[393]:
+# In[422]:
 
 
 # extract weight
@@ -330,7 +330,7 @@ invoice_data['pallets'] = invoice_data['content'].apply(lambda x: re.findall(r"(
 invoice_data['weight'] = invoice_data['content'].apply(lambda x: re.findall(r"(\d*[.,]*\d*[.,]*\d+[.,]\d*)\s(?=KG)", x)).apply(lambda x: min(x) if len(x)>0 else "")
 
 
-# In[394]:
+# In[423]:
 
 
 # extract volume
@@ -338,7 +338,7 @@ invoice_data['weight'] = invoice_data['content'].apply(lambda x: re.findall(r"(\
 invoice_data['volume'] = invoice_data['content'].apply(lambda x: re.findall(r"(\d*[.,]*\d*[.,]*\d+[.,]\d*)\s(?=M3)", x)).apply(lambda x: min(x) if len(x)>0 else "")
 
 
-# In[395]:
+# In[424]:
 
 
 # extract invoice amount and currency
@@ -350,7 +350,7 @@ invoice_data['invoice_amount'] = invoice_data['content'].apply(lambda x: re.find
 invoice_data['invoice_currency'] = invoice_data['content'].apply(lambda x: re.findall(r"TOTAL (?=(\b" + '\\b|\\b'.join(currencies['currency']) + r"\b))", x)).apply(lambda x: x[0] if len(x)>0 else "")
 
 
-# In[396]:
+# In[425]:
 
 
 # extract dates
@@ -366,7 +366,7 @@ invoice_data['due_date'] = invoice_data['content'].apply(lambda x: re.findall(r"
 #invoice_data['payment_terms'] = invoice_data['due_date'] - invoice_data['invoice_date']
 
 
-# In[397]:
+# In[426]:
 
 
 # convert all figures into floats
@@ -405,14 +405,14 @@ invoice_data['invoice_amount'] = pd.to_numeric(invoice_data['invoice_amount'], d
 invoice_data = invoice_data.drop(columns=['content'])
 
 
-# In[398]:
+# In[427]:
 
 
 # transforming invoice data table from lane-level to freight-service-level information
 
 verified_data = invoice_data.melt(
     id_vars = ['file_name', 'bill_of_lading', 'service_provider', 'origin_code', 'destination_code', 'invoice_currency', 'invoice_amount'],
-    value_vars = ['air', 'sea-FCL-20GP', 'sea-FCL-20OT', 'sea-FCL-20RF', 'sea-FCL-20TK', 'sea-FCL-40GP', 'sea-FCL-40HC', 'sea-FCL-40OT', 'sea-FCL-40RF', 'sea-FCL-45HC', 'sea-LCL'], 
+    value_vars = ['air', 'sea_fcl_20gp', 'sea_fcl_20ot', 'sea_fcl_20rf', 'sea_fcl_20tk', 'sea_fcl_40gp', 'sea_fcl_40hc', 'sea_fcl_40ot', 'sea_fcl_40rf', 'sea_fcl_45hc', 'sea_lcl'], 
     var_name = 'freight_service', 
     value_name = 'quantity')
 
@@ -420,10 +420,8 @@ verified_data = verified_data.merge(rate_data, 'left', on=['service_provider', '
 
 verified_data['should_cost'] = verified_data['quantity'] * verified_data['origin_collection_fees'] + verified_data['quantity'] * verified_data[['origin_handling_fees', 'freight_rate', 'bunker_adjustment_factor', 'dangerous_goods_surcharge', 'other_fees_per_container', 'destination_handling_fees']].sum(axis=1) + verified_data['quantity'] * verified_data['destination_delivery_fees'] + verified_data[['documentation_fees', 'filing_fees', 'other_fees_per_bill_of_lading']].sum(axis=1) * verified_data['quantity'] / verified_data.groupby(['bill_of_lading', 'service_provider', 'origin_code', 'destination_code'])['quantity'].sum()
 
-#verified_data
 
-
-# In[399]:
+# In[428]:
 
 
 # verify invoice amount
@@ -432,24 +430,22 @@ verified_data_bol = verified_data.groupby(['bill_of_lading', 'service_provider',
 
 verified_data_bol['deviation'] = verified_data['should_cost'] - verified_data['invoice_amount']
 
-#verified_data_bol
 
-
-# In[400]:
+# In[429]:
 
 
 # plot graph with deviations
 
 if not verified_data_bol.empty:
 
-    df = pd.DataFrame(verified_data_bol, columns=['bol', 'invoice_amount', 'should_cost'])
+    df = pd.DataFrame(verified_data_bol, columns=['bill_of_lading', 'invoice_amount', 'should_cost'])
 
-    fig = px.area(verified_data_bol, x="bol", y=['invoice_amount', 'should_cost'], labels={'bol': 'Bill of Lading Number', 'invoice_amount': 'Invoice Amount', 'should_cost': 'Should Cost', 'value': 'Amount', 'variable': ''})
+    fig = px.area(verified_data_bol, x='bill_of_lading', y=['invoice_amount', 'should_cost'], labels={'bill_of_lading': 'Bill of Lading Number', 'invoice_amount': 'Invoice Amount', 'should_cost': 'Should Cost', 'value': 'Amount', 'variable': ''})
 
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
-# In[403]:
+# In[430]:
 
 
 # add streamlit table and download button
@@ -458,7 +454,7 @@ output_data = verified_data_bol[['bill_of_lading', 'service_provider', 'origin_c
 
 aggrid = GridOptionsBuilder.from_dataframe(output_data)
 
-aggrid.configure_column('bill_of_lading', header_name='BoL', editable=False, suppressMovable=True)
+aggrid.configure_column('bill_of_lading', header_name='Bill of Lading', editable=False, suppressMovable=True)
 aggrid.configure_column('service_provider', header_name='Service Provider', editable=False, suppressMovable=True)
 aggrid.configure_column('origin_code', header_name='Origin', editable=False, suppressMovable=True)
 aggrid.configure_column('destination_code', header_name='Destination', editable=False, suppressMovable=True)
@@ -487,11 +483,11 @@ st.download_button(
 )
 
 
-# In[402]:
+# In[431]:
 
 
 # save uploaded invoices into database
 
 for i in range(0, len(invoice_data)):
-    supabase.table('invoice_data').upsert({'file_name':invoice_data['file_name'][i], 'bill_of_lading':invoice_data['bill_of_lading'][i], 'service_provider':invoice_data['service_provider'][i], 'origin_code':invoice_data['origin_code'][i], 'destination_code':invoice_data['destination_code'][i], 'pallets':int(invoice_data['pallets'][i]), 'weight':float(invoice_data['weight'][i]), 'volume':float(invoice_data['volume'][i]), 'invoice_amount':float(invoice_data['invoice_amount'][i]), 'invoice_currency':invoice_data['invoice_currency'][i], 'departure_date':str(invoice_data['departure_date'][i]), 'arrival_date':str(invoice_data['arrival_date'][i]), 'invoice_date':str(invoice_data['invoice_date'][i]), 'due_date':str(invoice_data['due_date'][i])}).execute()
+    supabase.table('invoice_data').upsert({'file_name':invoice_data['file_name'][i], 'bill_of_lading':invoice_data['bill_of_lading'][i], 'service_provider':invoice_data['service_provider'][i], 'origin_code':invoice_data['origin_code'][i], 'destination_code':invoice_data['destination_code'][i], 'air':int(invoice_data['air'][i]), 'sea_fcl_20gp':int(invoice_data['sea_fcl_20gp'][i]), 'sea_fcl_20ot':int(invoice_data['sea_fcl_20ot'][i]), 'sea_fcl_20rf':int(invoice_data['sea_fcl_20rf'][i]), 'sea_fcl_20tk':int(invoice_data['sea_fcl_20tk'][i]), 'sea_fcl_40gp':int(invoice_data['sea_fcl_40gp'][i]), 'sea_fcl_40hc':int(invoice_data['sea_fcl_40hc'][i]), 'sea_fcl_40ot':int(invoice_data['sea_fcl_40ot'][i]), 'sea_fcl_40rf':int(invoice_data['sea_fcl_40rf'][i]), 'sea_fcl_45hc':int(invoice_data['sea_fcl_45hc'][i]), 'sea_lcl':int(invoice_data['sea_lcl'][i]), 'container_id':invoice_data['container_id'][i], 'pallets':int(invoice_data['pallets'][i]), 'weight':float(invoice_data['weight'][i]), 'volume':float(invoice_data['volume'][i]), 'invoice_amount':float(invoice_data['invoice_amount'][i]), 'invoice_currency':invoice_data['invoice_currency'][i], 'departure_date':str(invoice_data['departure_date'][i]), 'arrival_date':str(invoice_data['arrival_date'][i]), 'invoice_date':str(invoice_data['invoice_date'][i]), 'due_date':str(invoice_data['due_date'][i])}).execute()
 
