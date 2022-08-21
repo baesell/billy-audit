@@ -449,7 +449,7 @@ if not verified_data_bol.empty:
 
     df = pd.DataFrame(verified_data_bol, columns=['bill_of_lading', 'invoice_amount', 'deviation'])
 
-    fig = px.area(verified_data_bol, x='bill_of_lading', y=['invoice_amount', 'deviation'])
+    fig = px.area(verified_data_bol, x='bill_of_lading', y=['invoice_amount', 'deviation'], labels={'bill_of_lading':'Bill of Lading', 'value':'Invoice Amount', 'variable':''})
 
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
