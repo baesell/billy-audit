@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[634]:
+# In[662]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ import plotly.express as px
 from supabase import create_client, Client
 
 
-# In[635]:
+# In[663]:
 
 
 # add streamlit webapp title
@@ -27,7 +27,7 @@ st.title('BillyAudit')
 st.subheader('Your Automated Freight Bill Audit Solution')
 
 
-# In[636]:
+# In[664]:
 
 
 @st.experimental_singleton()
@@ -47,7 +47,7 @@ for i in range(0, len(rate_data)):
 
 # # 1. Enter your contract rates
 
-# In[637]:
+# In[665]:
 
 
 # add streamlit header
@@ -57,7 +57,7 @@ st.header('')
 st.subheader('1. Enter your contract rates')
 
 
-# In[638]:
+# In[666]:
 
 
 from st_aggrid.shared import GridUpdateMode, DataReturnMode
@@ -201,7 +201,7 @@ if st.button('Save Changes'):
 
 # # 2. Upload multiple PDF invoices at once
 
-# In[639]:
+# In[667]:
 
 
 # add streamlit header
@@ -215,7 +215,7 @@ uploaded_files = st.file_uploader("Choose a PDF file", type=['pdf'], accept_mult
 
 # # 3. Download the audit results
 
-# In[640]:
+# In[668]:
 
 
 # add streamlit header
@@ -227,7 +227,7 @@ st.subheader('')
 st.subheader('3. Download the audit results')
 
 
-# In[641]:
+# In[669]:
 
 
 # read pdf files and extract content
@@ -244,7 +244,7 @@ for i in uploaded_files:
 invoice_data = pd.DataFrame(invoice_data, columns = ['file_name', 'content'])
 
 
-# In[642]:
+# In[670]:
 
 
 # extract bill of lading number
@@ -256,7 +256,7 @@ invoice_data['ocean_bill_of_lading'] = invoice_data['content'].apply(lambda x: r
 invoice_data['bill_of_lading'] = invoice_data['air_bill_of_lading'] + invoice_data['ocean_bill_of_lading']
 
 
-# In[643]:
+# In[671]:
 
 
 # extract service provider
@@ -266,7 +266,7 @@ service_provider = pd.DataFrame(supabase.table('service_provider').select('*').e
 invoice_data['service_provider'] = invoice_data['content'].apply(lambda x: re.findall(r"(?=(\b" + '\\b|\\b'.join(service_provider['service_provider']) + r"\b))", x)).apply(lambda x: x[0] if len(x)>0 else "")
 
 
-# In[644]:
+# In[672]:
 
 
 # extract origin and destination port codes
@@ -278,7 +278,7 @@ invoice_data['origin_code'] = invoice_data['content'].apply(lambda x: re.findall
 invoice_data['destination_code'] = invoice_data['content'].apply(lambda x: re.findall(r"(?=(\b" + '\\b|\\b'.join(port_codes['port_code']) + r"\b))", x)).apply(lambda x: x[1] if len(x)>1 else "")
 
 
-# In[645]:
+# In[673]:
 
 
 # extract freight service
@@ -306,7 +306,7 @@ invoice_data['sea_fcl_45hc'] = invoice_data['content'].apply(lambda x: re.findal
 invoice_data['sea_lcl'] = invoice_data['content'].apply(lambda x: re.findall(r"LCL\s*\-?\s*[A-Z]{4}\d{7}|[A-Z]{4}\d{7}\s*\-?\s*LCL", x)).apply(lambda x: len(set(x)))
 
 
-# In[646]:
+# In[674]:
 
 
 # extract container id
@@ -318,7 +318,7 @@ for i in range(0, len(invoice_data)):
         invoice_data['container_id'] = invoice_data['content'].apply(lambda x: re.findall(r"[A-Z]{4}\d{7}", x)).apply(lambda x: ','.join(map(str, x)))
 
 
-# In[647]:
+# In[675]:
 
 
 # extract number of pallets
@@ -326,7 +326,7 @@ for i in range(0, len(invoice_data)):
 invoice_data['pallets'] = invoice_data['content'].apply(lambda x: re.findall(r"(\d*[.,]*\d*[.,]*\d+[.,]*\d*)\s(?=PLT)", x)).apply(lambda x: min(x) if len(x)>0 else "")
 
 
-# In[648]:
+# In[676]:
 
 
 # extract weight
@@ -334,7 +334,7 @@ invoice_data['pallets'] = invoice_data['content'].apply(lambda x: re.findall(r"(
 invoice_data['weight'] = invoice_data['content'].apply(lambda x: re.findall(r"(\d*[.,]*\d*[.,]*\d+[.,]\d*)\s(?=KG)", x)).apply(lambda x: min(x) if len(x)>0 else "")
 
 
-# In[649]:
+# In[677]:
 
 
 # extract volume
@@ -342,7 +342,7 @@ invoice_data['weight'] = invoice_data['content'].apply(lambda x: re.findall(r"(\
 invoice_data['volume'] = invoice_data['content'].apply(lambda x: re.findall(r"(\d*[.,]*\d*[.,]*\d+[.,]\d*)\s(?=M3)", x)).apply(lambda x: min(x) if len(x)>0 else "")
 
 
-# In[650]:
+# In[678]:
 
 
 # extract invoice amount and currency
@@ -354,7 +354,7 @@ invoice_data['invoice_amount'] = invoice_data['content'].apply(lambda x: re.find
 invoice_data['invoice_currency'] = invoice_data['content'].apply(lambda x: re.findall(r"TOTAL (?=(\b" + '\\b|\\b'.join(currencies['currency']) + r"\b))", x)).apply(lambda x: x[0] if len(x)>0 else "")
 
 
-# In[651]:
+# In[679]:
 
 
 # extract dates
@@ -370,7 +370,7 @@ invoice_data['due_date'] = invoice_data['content'].apply(lambda x: re.findall(r"
 #invoice_data['payment_terms'] = invoice_data['due_date'] - invoice_data['invoice_date']
 
 
-# In[652]:
+# In[680]:
 
 
 # convert all figures into floats
@@ -409,7 +409,7 @@ invoice_data['invoice_amount'] = pd.to_numeric(invoice_data['invoice_amount'], d
 invoice_data = invoice_data.drop(columns=['content'])
 
 
-# In[653]:
+# In[681]:
 
 
 # transforming invoice data table from lane-level to freight-service-level information
@@ -430,17 +430,17 @@ verified_data = verified_data.merge(rate_data, 'left', on=['service_provider', '
 verified_data['should_cost'] = verified_data['quantity'] * verified_data['origin_collection_fees'] + verified_data['quantity'] * verified_data[['origin_handling_fees', 'freight_rate', 'bunker_adjustment_factor', 'dangerous_goods_surcharge', 'other_fees_per_container', 'other_fees_per_cbm', 'other_fees_per_kg', 'destination_handling_fees']].sum(axis=1) + verified_data['quantity'] * verified_data['destination_delivery_fees'] + verified_data[['documentation_fees', 'filing_fees', 'other_fees_per_bill_of_lading']].sum(axis=1)
 
 
-# In[654]:
+# In[682]:
 
 
 # verify invoice amount
 
-verified_data_bol = verified_data.groupby(['bill_of_lading', 'service_provider', 'origin_code', 'destination_code', 'invoice_currency', 'invoice_amount'])['should_cost'].sum().reset_index()
+verified_data_bol = verified_data.groupby(['file_name', 'bill_of_lading', 'service_provider', 'origin_code', 'destination_code', 'invoice_currency', 'invoice_amount'])['should_cost'].sum().reset_index()
 
 verified_data_bol['deviation'] = verified_data_bol['invoice_amount'] - verified_data_bol['should_cost']
 
 
-# In[655]:
+# In[683]:
 
 
 # plot graph with deviations
@@ -454,15 +454,16 @@ if not verified_data_bol.empty:
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
-# In[656]:
+# In[684]:
 
 
 # add streamlit table and download button
 
-output_data = verified_data_bol[['bill_of_lading', 'service_provider', 'origin_code', 'destination_code', 'invoice_currency', 'invoice_amount', 'should_cost', 'deviation']]
+output_data = verified_data_bol[['file_name', 'bill_of_lading', 'service_provider', 'origin_code', 'destination_code', 'invoice_currency', 'invoice_amount', 'should_cost', 'deviation']]
 
 aggrid = GridOptionsBuilder.from_dataframe(output_data)
 
+aggrid.configure_column('file_name', header_name='File Name', editable=False, suppressMovable=True)
 aggrid.configure_column('bill_of_lading', header_name='Bill of Lading', editable=False, suppressMovable=True)
 aggrid.configure_column('service_provider', header_name='Service Provider', editable=False, suppressMovable=True)
 aggrid.configure_column('origin_code', header_name='Origin', editable=False, suppressMovable=True)
@@ -490,7 +491,7 @@ st.download_button(
 )
 
 
-# In[657]:
+# In[685]:
 
 
 # save uploaded invoices into database
